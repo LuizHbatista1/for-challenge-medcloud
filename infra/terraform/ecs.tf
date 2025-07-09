@@ -3,7 +3,7 @@ resource "aws_ecs_cluster" "ecs" {
 }
 
 
-# Criar o ALB
+
 resource "aws_lb" "app_lb" {
   name               = "${terraform.workspace}-app-lb"
   internal           = false
@@ -12,7 +12,7 @@ resource "aws_lb" "app_lb" {
   subnets            = [aws_subnet.sn1.id, aws_subnet.sn2.id, aws_subnet.sn3.id]
 }
 
-# Target Group
+
 resource "aws_lb_target_group" "app_tg" {
   name        = "${terraform.workspace}-app-tg"
   port        = 80
@@ -30,7 +30,7 @@ resource "aws_lb_target_group" "app_tg" {
   }
 }
 
-# Listener
+
 resource "aws_lb_listener" "front_end" {
   load_balancer_arn = aws_lb.app_lb.arn
   port              = "80"
@@ -42,7 +42,7 @@ resource "aws_lb_listener" "front_end" {
   }
 }
 
-# Atualizar o ECS Service para usar o ALB
+
 resource "aws_ecs_service" "service" {
 
     name = "${terraform.workspace}-app-service"

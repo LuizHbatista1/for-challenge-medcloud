@@ -42,11 +42,7 @@ resource "aws_db_instance" "application_db" {
   password               = var.db_password
   parameter_group_name   = "default.mysql8.0"
   skip_final_snapshot    = true
-
-  # Esses são os parâmetros importantes para VPC customizada:
   db_subnet_group_name   = aws_db_subnet_group.application_db_subnet_group.name
   vpc_security_group_ids = [aws_security_group.application-db-sg.id]
-
-  # O RDS não terá IP público (por padrão)
   publicly_accessible    = false
 }
