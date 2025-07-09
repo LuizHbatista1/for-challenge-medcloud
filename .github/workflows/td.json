@@ -1,0 +1,68 @@
+{
+    "taskDefinitionArn": "arn:aws:ecs:sa-east-1:509924243707:task-definition/${ENVIRONMENT}-app:1",
+    "containerDefinitions": [
+        {
+            "name": "app",
+            "image": "509924243707.dkr.ecr.sa-east-1.amazonaws.com/${ENVIRONMENT}-app-repo",
+            "cpu": 256,
+            "memory": 512,
+            "portMappings": [
+                {
+                    "containerPort": 80,
+                    "hostPort": 80,
+                    "protocol": "tcp"
+                }
+            ],
+            "essential": true,
+            "environment": [
+                {
+                    "name": "ENVIRONMENT",
+                    "value": "${ENVIRONMENT}"
+                }
+            ],
+            "mountPoints": [],
+            "volumesFrom": [],
+            "systemControls": []
+        }
+    ],
+    "family": "${ENVIRONMENT}-app",
+    "taskRoleArn": "arn:aws:iam::509924243707:role/for_medcloud",
+    "executionRoleArn": "arn:aws:iam::509924243707:role/for_medcloud",
+    "networkMode": "awsvpc",
+    "revision": 1,
+    "volumes": [],
+    "status": "ACTIVE",
+    "requiresAttributes": [
+        {
+            "name": "com.amazonaws.ecs.capability.ecr-auth"
+        },
+        {
+            "name": "com.amazonaws.ecs.capability.task-iam-role"
+        },
+        {
+            "name": "ecs.capability.execution-role-ecr-pull"
+        },
+        {
+            "name": "com.amazonaws.ecs.capability.docker-remote-api.1.18"
+        },
+        {
+            "name": "ecs.capability.task-eni"
+        }
+    ],
+    "placementConstraints": [],
+    "compatibilities": [
+        "EC2",
+        "FARGATE"
+    ],
+    "requiresCompatibilities": [
+        "FARGATE"
+    ],
+    "cpu": "256",
+    "memory": "512",
+    "tags": [
+        {
+            "key": "Environment",
+            "value": "${ENVIRONMENT}"
+        }
+    ]
+}

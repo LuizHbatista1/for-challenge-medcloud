@@ -1,0 +1,76 @@
+name: Deploy to Amazon
+on:
+  push:
+    branches:
+      - main
+env:
+  AWS_REGION: ${{ secrets.AWS_REGION }}
+  ENVIRONMENT: ${{ github.ref == 'refs/heads/main' && 'prod' || 'dev' }}
+  ECS_CLUSTER: ${{ github.ref == 'refs/heads/main' && 'prod' || 'dev' }}-app-cluster
+  CONTAINER_NAME: app
+  ECS_SERVICE: ${{ github.ref == 'refs/heads/main' && 'prod' || 'dev' }}-app-service
+  ECS_TD: .github/workflows/td.json
+  S3_BUCKET: ${{ github.ref == 'refs/heads/main' && 'prod' || 'dev' }}-challenge-medcloud
+  ECR_REPOSITORY: ${{ github.ref == 'refs/heads/main' && 'prod' || 'dev' }}-app-repo
+
+jobs:
+  deploy:
+    name: Deploy
+    runs-on: ubuntu-latest
+    environment: ${{ github.ref == 'refs/heads/main' && 'prod' || 'dev' }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v1
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ secrets.AWS_REGION }}
+
+      - name: Upload artifacts to S3
+        run: |
+          echo "Deploy realizado em $(date)" > deploy-info.txt
+          echo "Commit SHA: ${{ github.sha }}" >> deploy-info.txt
+          echo "Environment: ${{ env.ENVIRONMENT }}" >> deploy-info.txt
+          
+          zip -r application.zip ./application/*
+          
+          aws s3 cp application.zip s3://${{ env.S3_BUCKET }}/deployments/${{ github.sha }}/application.zip
+          aws s3 cp deploy-info.txt s3://${{ env.S3_BUCKET }}/deployments/${{ github.sha }}/deploy-info.txt
+
+      - name: Login to Amazon ECR
+        id: login-ecr
+        uses: aws-actions/amazon-ecr-login@v1
+
+      - name: Build, tag, and push image to Amazon ECR
+        id: build-image
+        env:
+          ECR_REGISTRY: "509924243707.dkr.ecr.sa-east-1.amazonaws.com"
+          IMAGE_TAG: latest
+        run: |
+          docker build -t $ECR_REGISTRY/${{ env.ECR_REPOSITORY }}:$IMAGE_TAG ./application
+          docker push $ECR_REGISTRY/${{ env.ECR_REPOSITORY }}:$IMAGE_TAG
+          echo "::set-output name=image::$ECR_REGISTRY/${{ env.ECR_REPOSITORY }}:$IMAGE_TAG"
+
+      - name: Process task definition
+        run: |
+          sed -i "s/\${ENVIRONMENT}/${{ env.ENVIRONMENT }}/g" ${{ env.ECS_TD }}
+
+      - name: Fill in the new image ID in the Amazon ECS task definition
+        id: task-def-1
+        uses: aws-actions/amazon-ecs-render-task-definition@v1
+        with:
+          task-definition: ${{ env.ECS_TD }}
+          container-name: ${{ env.CONTAINER_NAME }}
+          image: ${{ steps.build-image.outputs.image }}
+
+      - name: Deploy Amazon ECS task definition
+        uses: aws-actions/amazon-ecs-deploy-task-definition@v1
+        with:
+          task-definition: ${{ steps.task-def-1.outputs.task-definition }}
+          service: ${{ env.ECS_SERVICE }}
+          cluster: ${{ env.ECS_CLUSTER }}
+          wait-for-service-stability: true
+      
