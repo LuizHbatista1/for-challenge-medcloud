@@ -1,12 +1,11 @@
-# Projeto Pet API com Infraestrutura AWS
+# Desafio DevOps Medcloud
 
-## 📋 Descrição do Projeto
-API RESTful para gerenciamento de pets, desenvolvida com Node.js e Express, utilizando uma arquitetura moderna em containers com deploy automatizado na AWS. O projeto implementa boas práticas de DevOps e Infrastructure as Code.
+Este repositório contém o código-fonte e a configuração para o desafio de DevOps da Medcloud. A infraestrutura será provisionada na AWS, utilizando Terraform, e o pipeline de CI/CD será automatizado com GitHub Actions.
 
 ## 🏗️ Arquitetura
 
 ### Backend (Node.js + Express)
-- API REST para cadastro de pets
+- API REST 
 - Conexão com banco de dados MySQL (Amazon RDS)
 - Containerização com Docker
 
@@ -60,29 +59,6 @@ DB_NAME=nome-do-banco
 - `AWS_SECRET_ACCESS_KEY`
 - `AWS_REGION`
 
-## 📡 Endpoints da API
-
-### POST /api/pets
-Cria um novo registro de pet
-
-**Payload**:
-```json
-{
-  "nome": "string",
-  "especie": "string",
-  "idade": number
-}
-```
-
-**Resposta (201)**:
-```json
-{
-  "id": number,
-  "nome": "string",
-  "especie": "string",
-  "idade": number
-}
-```
 
 ## 🏛️ Estrutura do Projeto
 ```
@@ -132,4 +108,5 @@ Cria um novo registro de pet
 - Health check via ALB
 - Logs do container no CloudWatch
 - Métricas de infraestrutura AWS
+        
         
